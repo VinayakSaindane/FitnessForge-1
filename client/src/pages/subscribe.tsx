@@ -84,6 +84,75 @@ const SubscribeForm = () => {
 };
 
 export default function Subscribe() {
+  // If Stripe is not configured, show alternative subscription page
+  if (!stripePromise) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        
+        <main className="container mx-auto px-4 py-8 mt-16">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Join FitHub Premium
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Unlock unlimited access to classes, personal training, and premium amenities
+            </p>
+          </div>
+
+          {/* Benefits Summary */}
+          <div className="max-w-4xl mx-auto mb-12">
+            <div className="grid md:grid-cols-3 gap-8 mb-8">
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <Check className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">Unlimited Classes</h3>
+                  <p className="text-sm text-gray-600">Access to all group fitness classes</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <Star className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">Personal Training</h3>
+                  <p className="text-sm text-gray-600">Monthly one-on-one sessions included</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <Crown className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">Premium Amenities</h3>
+                  <p className="text-sm text-gray-600">Sauna, spa, and VIP locker access</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Contact for Membership */}
+          <Card className="max-w-md mx-auto text-center">
+            <CardContent className="p-8">
+              <Crown className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold mb-4">Premium Membership</h3>
+              <p className="text-gray-600 mb-6">
+                Contact us to set up your premium membership and start your fitness journey today.
+              </p>
+              <Button 
+                className="w-full bg-gradient-to-r from-blue-500 to-orange-500 text-white py-3 text-lg mb-4"
+                onClick={() => window.location.href = '/contact'}
+              >
+                Contact Us
+              </Button>
+              <p className="text-sm text-gray-500">
+                Call us at (555) 123-4567 or visit our contact page
+              </p>
+            </CardContent>
+          </Card>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  }
+
   const [clientSecret, setClientSecret] = useState("");
 
   useEffect(() => {
