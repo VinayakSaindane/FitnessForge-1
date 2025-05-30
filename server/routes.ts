@@ -6,12 +6,10 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertBookingSchema, insertContactSchema, insertTestimonialSchema, insertPersonalTrainingSessionSchema } from "@shared/schema";
 import { z } from "zod";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+let stripe: Stripe | null = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 }
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
-});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -216,57 +214,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Stripe payment routes for membership subscriptions
   app.post('/api/get-or-create-subscription', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      let user = await storage.getUser(userId);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      if (user.stripeSubscriptionId) {
-        const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-
-        res.send({
-          subscriptionId: subscription.id,
-          clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
-        });
-
-        return;
-      }
-      
-      if (!user.email) {
-        throw new Error('No user email on file');
-      }
-
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-      });
-
-      user = await storage.updateUserStripeInfo(user.id, customer.id, '');
-
-      const subscription = await stripe.subscriptions.create({
-        customer: customer.id,
-        items: [{
-          // STRIPE_PRICE_ID will need to be set by the user. (starts with `price_`)
-          // They need to get it from <https://dashboard.stripe.com/products>
-          price: process.env.STRIPE_PRICE_ID || 'price_test_example',
-        }],
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent'],
-      });
-
-      await storage.updateUserStripeInfo(user.id, customer.id, subscription.id);
-  
-      res.send({
-        subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
-      });
-    } catch (error: any) {
-      console.error("Stripe subscription error:", error);
-      return res.status(400).send({ error: { message: error.message } });
-    }
+    return res.status(503).json({ 
+      message: "Payment processing is temporarily unavailable. Please contact support to set up your membership." 
+    });
   });
 
   // Admin routes (basic implementation)
