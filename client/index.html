@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <meta name="description" content="Join FitHub - The premier fitness center offering state-of-the-art equipment, expert trainers, and diverse fitness classes. Start your fitness journey today!" />
+    <meta name="keywords" content="fitness, gym, personal training, group classes, health, wellness, workout, exercise" />
+    <meta name="author" content="FitHub" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
+    <meta property="og:title" content="FitHub - Premium Fitness & Wellness Center" />
+    <meta property="og:description" content="Transform your body and elevate your mind at FitHub. Expert trainers, state-of-the-art equipment, and a supportive community await you." />
+    <meta property="og:image" content="/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="/" />
+    <meta property="twitter:title" content="FitHub - Premium Fitness & Wellness Center" />
+    <meta property="twitter:description" content="Transform your body and elevate your mind at FitHub. Expert trainers, state-of-the-art equipment, and a supportive community await you." />
+    <meta property="twitter:image" content="/og-image.jpg" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- Schema.org structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsActivityLocation",
+      "name": "FitHub",
+      "description": "Premium fitness and wellness center offering personal training, group classes, and state-of-the-art equipment.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "123 Fitness Avenue",
+        "addressLocality": "Health City",
+        "addressRegion": "HC",
+        "postalCode": "12345",
+        "addressCountry": "US"
+      },
+      "telephone": "(555) 123-4567",
+      "url": "/",
+      "openingHours": [
+        "Mo-Fr 05:00-23:00",
+        "Sa-Su 06:00-22:00"
+      ],
+      "priceRange": "$49-$149",
+      "amenityFeature": [
+        "Personal Training",
+        "Group Fitness Classes",
+        "Locker Rooms",
+        "Sauna",
+        "Parking"
+      ]
+    }
+    </script>
+    
+    <title>FitHub - Premium Fitness & Wellness Center</title>
+    
+    <style>
+      /* Critical CSS for above-the-fold content */
+      .font-inter { 
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
+      }
+      
+      /* Loading screen */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #0EA5E9 0%, #F97316 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+      
+      #loading-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body class="font-inter">
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="text-center text-white">
+        <div class="loading-spinner mx-auto mb-4"></div>
+        <h1 class="text-2xl font-bold">FitHub</h1>
+        <p class="text-sm opacity-90">Loading your fitness journey...</p>
+      </div>
+    </div>
+    
+    <!-- Main App -->
+    <div id="root"></div>
+    
+    <!-- Scripts -->
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Remove loading screen when app loads -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loadingScreen = document.getElementById('loading-screen');
+          if (loadingScreen) {
+            loadingScreen.classList.add('fade-out');
+            setTimeout(function() {
+              loadingScreen.remove();
+            }, 500);
+          }
+        }, 1000);
+      });
+    </script>
+    
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+  </body>
+</html>
