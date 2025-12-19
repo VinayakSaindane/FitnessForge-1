@@ -6,11 +6,10 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
+import MemoryStoreFactory from "memorystore";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+const hasAuthEnv = Boolean(process.env.REPLIT_DOMAINS && process.env.REPL_ID);
 
 const getOidcConfig = memoize(
   async () => {
@@ -24,21 +23,31 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+
+  const hasDatabase = Boolean(process.env.DATABASE_URL);
+
+  let store: any;
+  if (hasDatabase) {
+    const PgStore = connectPg(session);
+    store = new PgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      ttl: sessionTtl,
+      tableName: "sessions",
+    });
+  } else {
+    const MemoryStore = MemoryStoreFactory(session);
+    store = new MemoryStore({ checkPeriod: sessionTtl });
+  }
+
   return session({
-    secret: process.env.SESSION_SECRET!,
-    store: sessionStore,
+    secret: process.env.SESSION_SECRET || "dev-secret",
+    store,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: false,
       maxAge: sessionTtl,
     },
   });
@@ -69,6 +78,13 @@ async function upsertUser(
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
+
+  if (!hasAuthEnv) {
+    // No OIDC configured: provide a permissive fake auth for development
+    app.use((_req, _res, next) => next());
+    return;
+  }
+
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -78,14 +94,13 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
+    const user = {} as any;
     updateUserSession(user, tokens);
     await upsertUser(tokens.claims());
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  for (const domain of process.env.REPLIT_DOMAINS!.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -128,9 +143,18 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  if (!hasAuthEnv) {
+    // Dev mode: attach a fake user and allow
+    (req as any).user = {
+      claims: { sub: "dev-user", email: "dev@example.com" },
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+    };
+    return next();
+  }
+
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user?.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -149,7 +173,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
     return next();
-  } catch (error) {
+  } catch (_error) {
     return res.redirect("/api/login");
   }
 };

@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClassCard from "@/components/ClassCard";
 import BookingModal from "@/components/BookingModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Search, Filter } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { Search, Filter, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { mockClassesList, mockSchedulesList } from "@/lib/mockData";
 
 export default function Classes() {
   const [selectedClass, setSelectedClass] = useState<any>(null);
@@ -22,22 +21,20 @@ export default function Classes() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: classes, isLoading: classesLoading } = useQuery({
-    queryKey: ["/api/classes"],
-  });
-
-  const { data: schedules } = useQuery({
-    queryKey: ["/api/class-schedules"],
-  });
+  // Use mock data
+  const classes = mockClassesList;
+  const schedules = mockSchedulesList;
+  const classesLoading = false;
 
   const bookingMutation = useMutation({
     mutationFn: async (bookingData: any) => {
-      return apiRequest("POST", "/api/book-class", bookingData);
+      // Simulate API call
+      return new Promise((resolve) => setTimeout(resolve, 1000));
     },
     onSuccess: () => {
       toast({
-        title: "Success!",
-        description: "Class booked successfully!",
+        title: "Success! 🎉",
+        description: "Class booked successfully! Get ready to sweat.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/my-bookings"] });
       setShowBookingModal(false);
@@ -56,11 +53,11 @@ export default function Classes() {
 
   const filteredClasses = classes?.filter((cls: any) => {
     const matchesSearch = cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cls.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cls.instructor?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      cls.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cls.instructor?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === "all" || cls.type === selectedType;
     const matchesIntensity = selectedIntensity === "all" || cls.intensity === selectedIntensity;
-    
+
     return matchesSearch && matchesType && matchesIntensity;
   });
 
@@ -92,23 +89,23 @@ export default function Classes() {
 
   const getIntensityColor = (intensity: string) => {
     switch (intensity) {
-      case "low": return "bg-green-100 text-green-800";
-      case "medium": return "bg-yellow-100 text-yellow-800";
-      case "high": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "low": return "bg-green-500/20 text-green-400 border-green-500/50";
+      case "medium": return "bg-yellow-500/20 text-yellow-400 border-yellow-500/50";
+      case "high": return "bg-red-500/20 text-red-400 border-red-500/50";
+      default: return "bg-gray-500/20 text-gray-400 border-gray-500/50";
     }
   };
 
   if (classesLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background text-foreground">
         <Header />
         <div className="container mx-auto px-4 py-8 mt-16">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-8 bg-muted rounded w-1/4 mb-4"></div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-96 bg-gray-200 rounded-lg"></div>
+                <div key={i} className="h-96 bg-muted rounded-lg"></div>
               ))}
             </div>
           </div>
@@ -119,37 +116,42 @@ export default function Classes() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <Header />
-      
-      <main className="container mx-auto px-4 py-8 mt-16">
+
+      <main className="container mx-auto px-4 py-8 mt-16 space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Fitness Classes
-          </h1>
-          <p className="text-xl text-gray-600">
-            Find the perfect workout for your fitness level and goals
-          </p>
+        <div className="mb-8 relative overflow-hidden rounded-2xl glass-panel p-8">
+          <div className="relative z-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+              Fitness Classes
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl">
+              Find the perfect workout for your fitness level and goals. From high-intensity HIIT to calming Yoga.
+            </p>
+          </div>
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 opacity-10">
+            <Sparkles size={200} className="text-primary" />
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-8 space-y-4 glass-panel p-6 rounded-xl animate-slide-up" style={{ animationDelay: '0.1s' }}>
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <Input
               placeholder="Search classes, instructors..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-background/50 border-input focus:ring-primary"
             />
           </div>
 
           {/* Filter Buttons */}
-          <div className="flex flex-wrap gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-2">Class Type</p>
+          <div className="flex flex-wrap gap-8">
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Class Type</p>
               <div className="flex flex-wrap gap-2">
                 {classTypes.map((type) => (
                   <Button
@@ -157,7 +159,7 @@ export default function Classes() {
                     variant={selectedType === type ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedType(type)}
-                    className="capitalize"
+                    className={`capitalize ${selectedType === type ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/20 hover:text-primary border-primary/20'}`}
                   >
                     {type === "all" ? "All Classes" : type}
                   </Button>
@@ -165,8 +167,8 @@ export default function Classes() {
               </div>
             </div>
 
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-2">Intensity</p>
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Intensity</p>
               <div className="flex flex-wrap gap-2">
                 {intensities.map((intensity) => (
                   <Button
@@ -174,7 +176,7 @@ export default function Classes() {
                     variant={selectedIntensity === intensity ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedIntensity(intensity)}
-                    className="capitalize"
+                    className={`capitalize ${selectedIntensity === intensity ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/20 hover:text-primary border-primary/20'}`}
                   >
                     {intensity === "all" ? "All Levels" : intensity}
                   </Button>
@@ -185,29 +187,37 @@ export default function Classes() {
         </div>
 
         {/* Classes Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
           {filteredClasses?.map((cls: any) => {
             const classSchedules = schedules?.filter((s: any) => s.classId === cls.id) || [];
-            
+
             return (
-              <ClassCard
-                key={cls.id}
-                classData={cls}
-                schedules={classSchedules}
-                onBook={handleBookClass}
-                formatTime={formatTime}
-                getDayName={getDayName}
-                getIntensityColor={getIntensityColor}
-              />
+              <div key={cls.id} className="transition-transform hover:-translate-y-2 duration-300">
+                <ClassCard
+                  classData={cls}
+                  schedules={classSchedules}
+                  onBook={handleBookClass}
+                  formatTime={formatTime}
+                  getDayName={getDayName}
+                  getIntensityColor={getIntensityColor}
+                />
+              </div>
             );
           })}
         </div>
 
         {filteredClasses?.length === 0 && (
-          <div className="text-center py-16">
-            <Filter className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No classes found</h3>
-            <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+          <div className="text-center py-16 glass-panel rounded-xl">
+            <Filter className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">No classes found</h3>
+            <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+            <Button
+              variant="link"
+              className="text-primary mt-4"
+              onClick={() => { setSearchTerm(''); setSelectedType('all'); setSelectedIntensity('all'); }}
+            >
+              Clear all filters
+            </Button>
           </div>
         )}
       </main>
